@@ -11,11 +11,15 @@ export default function App() {
         setItems(items => items.filter(item => item.id !== id))
     }
 
+    function handleToggleItem(id) {
+        setItems(items => items.map(item => item.id === id ? {...item, packed: !item.packed} : item))
+    }
+
     return <div className="app">
         <Logo/>
         <Form onAddItems={handleAddItems}/>
-        <PackingList items={items} onDeleteItem={handleDeleteItem}/>
-        <Stats/>
+        <PackingList items={items} onDeleteItem={handleDeleteItem} onToggleItem={handleToggleItem}/>
+        <Stats items={items}/>
     </div>
 }
 
@@ -46,25 +50,30 @@ function Form({onAddItems}) {
     </form>
 }
 
-function PackingList({items, onDeleteItem}) {
+function PackingList({items, onDeleteItem, onToggleItem}) {
     return <div className='list'>
         <ul>
-            {items.map(item => <Item key={item.id} item={item} onDeleteItem={onDeleteItem}/>)}
+            {items.map(item => <Item key={item.id} item={item} onDeleteItem={onDeleteItem} onToggleItem={onToggleItem}/>)}
         </ul>
     </div>
 }
 
-function Item({item, onDeleteItem}) {
+function Item({item, onDeleteItem, onToggleItem}) {
     return <li>
+        <input type="checkbox" value={item.packed} onChange={() => {onToggleItem(item.id)}}/>
         <span style={item.packed ? {textDecoration: 'line-through'} : {}}>{item.quantity} {item.description}</span>
         <button onClick={() => onDeleteItem(item.id)}>❌</button>
     </li>
 }
 
-function Stats() {
+function Stats({items}) {
+    if (!items.length) return <p className='stats'><em>Start adding some items to your packing list 🚀</em></p>
+    const numItems = items.length
+    const numPacked = items.filter(item => item.packed).length
+    const percent = (numPacked / numItems * 100).toFixed(2)
     return <footer className='stats'>
         <em>
-            💼 You have X items on your list and you already packed X (X%)
+            {numPacked === numItems ? 'You got everything! Ready to go ✈️' : `💼 You have ${numItems} items on your list and you already packed ${numPacked} (${percent}%)`}
         </em>
     </footer>
 }
